@@ -1,0 +1,518 @@
+---
+title: "Dynamic Plots"
+author: "Collin Owens"
+format: html
+editor: visual
+---
+
+```{r}
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+library(ggthemes)
+library(httr)
+library(rlist)
+library(jsonlite)
+library(plotly)
+library(dygraphs)
+library(xts)
+library(htmlwidgets)
+library(tidyverse)
+```
+
+#Setting Dataset up
+```{r}
+LAD <- VERB("GET", url = "https://www.lostarkmarket.online/api/export-item-history/North America West/basic-oreha-fusion-material-2,crystallized-destruction-stone-0,crystallized-guardian-stone-0,great-honor-leapstone-2,honor-shard-pouch-l-3,honor-shard-pouch-m-2,honor-shard-pouch-s-1,solar-blessing-2,solar-grace-1,solar-protection-3", encode = "json")
+
+resptxt <- content(LAD, as="text")
+
+Converting <- fromJSON(resptxt)
+
+LostArkData <- Converting%>%bind_rows%>%select(id,timestamp,open,close,high,low)
+
+attach(LostArkData)
+
+#converting nonsensical time into real dates and replacing the old ones with a real date.
+Tconvert <- timestamp/1000
+Newtime <- as_date(as_datetime(Tconvert))
+LostArkData$timestamp <- Newtime
+
+#Removing any price=0 because the minimum price will always be 1
+LostArkData$open[LostArkData$open ==0] <- NA
+LostArkData$close[LostArkData$close ==0] <- NA
+LostArkData$high[LostArkData$high ==0] <- NA
+LostArkData$low[LostArkData$low ==0] <- NA
+LostArkData <- LostArkData[complete.cases(LostArkData), ]
+
+#checking new length, looks like we have removed 4 observations.
+length(LostArkData$id)
+
+#renaming first 2 columns
+names(LostArkData)[1] <- "Item"
+names(LostArkData)[2] <- "Date"
+
+#renaming observations to in game names.
+LostArkData$Item[LostArkData$Item == "basic-oreha-fusion-material-2"] <- "Basic Oreha"
+LostArkData$Item[LostArkData$Item == "crystallized-destruction-stone-0"] <- "Destruction Stone"
+LostArkData$Item[LostArkData$Item == "crystallized-guardian-stone-0"] <- "Guardian Stone"
+LostArkData$Item[LostArkData$Item == "great-honor-leapstone-2"] <- "Great Honor Leapstones"
+LostArkData$Item[LostArkData$Item == "honor-shard-pouch-l-3"] <- "Honor Shard L"
+LostArkData$Item[LostArkData$Item == "honor-shard-pouch-m-2"] <- "Honor Shard M"
+LostArkData$Item[LostArkData$Item == "honor-shard-pouch-s-1"] <- "Honor Shard S"
+LostArkData$Item[LostArkData$Item == "solar-blessing-2"] <- "Solar Blessing"
+LostArkData$Item[LostArkData$Item == "solar-grace-1"] <- "Solar Grace"
+LostArkData$Item[LostArkData$Item == "solar-protection-3"] <- "Solar Protection"
+```
+
+
+#Cleaning and separating
+I have to separate each data set into its own thing for the plots to play nice with eachother.
+```{r}
+LostArkData <- LostArkData[!(LostArkData$open == 65.00 & LostArkData$high == 14899.00),]
+LostArkData <- LostArkData[!(LostArkData$open == 13.00 & LostArkData$high == 2500.00),]
+LostArkData <- LostArkData[!(LostArkData$open == 187.00 & LostArkData$high == 1823.00),]
+LostArkData <- LostArkData[!(LostArkData$open == 1823.00 & LostArkData$high == 1823.00),]
+
+LostArkData <- LostArkData[!(LostArkData$open == 118.00 & LostArkData$low == 11.00),]
+LostArkData <- LostArkData[!(LostArkData$close == 116.00 & LostArkData$low == 11.00),]
+LostArkData <- LostArkData[!(LostArkData$open == 116.00 & LostArkData$low == 11.00),]
+LostArkData <- LostArkData[!(LostArkData$close == 115.00 & LostArkData$low == 11.00),]
+
+#LAGHLD is a data set for Great Honor Leapstones
+LAGHLD <- LostArkData %>% filter(LostArkData$Item %in% c("Great Honor Leapstones"))
+
+#LAOrehaD is a data set for Oreha material.
+LAOrehaD <- LostArkData %>% filter(LostArkData$Item %in% c("Basic Oreha"))
+
+#LADGD T3 Destruction and T3 Guardians
+LADestructionD <- LostArkData %>% filter(LostArkData$Item %in% c("Destruction Stone"))
+LAGuardianD <- LostArkData %>% filter(LostArkData$Item %in% c("Guardian Stone"))
+
+#LARateupD is a data set for rate up materials 
+LABlessingD <- LostArkData %>% filter(LostArkData$Item %in% c("Solar Blessing"))
+LAGraceD <- LostArkData %>% filter(LostArkData$Item %in% c("Solar Grace"))
+LAProtectionD <- LostArkData %>% filter(LostArkData$Item %in% c("Solar Protection"))
+
+#LAShardsD is a data set for the shard packs
+LALShardD <- LostArkData %>% filter(LostArkData$Item %in% c("Honor Shard L"))
+LAMShardD <- LostArkData %>% filter(LostArkData$Item %in% c("Honor Shard M"))
+LASShardD <- LostArkData %>% filter(LostArkData$Item %in% c("Honor Shard S"))
+
+
+#Shaded regions
+Shade <- data.frame(start = as.Date(c('2022-04-25','2022-05-06','2022-06-01','2022-07-12','2022-07-29','2022-09-20')), end = as.Date(c('2022-04-28','2022-05-19','2022-06-30','2022-07-19','2022-08-15','2022-09-28')))
+
+Shade1 <- data.frame(start = as.Date(c('2022-07-12','2022-07-29','2022-09-20')), end = as.Date(c('2022-07-19','2022-08-15','2022-09-28')))
+```
+
+#New Data transformation
+This is done for having specific date data, the old data had about 12+ observations per date but the High, Low, Close data is not displayed as nice if we do not separate the dates out. 
+```{r}
+#Great honor data
+Open <- LAGHLD %>% group_by(Date) %>% slice_head()
+Close <- LAGHLD %>% group_by(Date) %>% slice_tail()
+Min <- LAGHLD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LAGHLD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+id <- 1:length(Close$close)
+
+NGHLD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NGHLD)[1] <- "Item"
+names(NGHLD)[2] <- "Date"
+names(NGHLD)[3] <- "Open"
+names(NGHLD)[4] <- "Close"
+names(NGHLD)[5] <- "Min"
+names(NGHLD)[6] <- "Max"
+
+
+#Oreha
+Open <- LAOrehaD %>% group_by(Date) %>% slice_head()
+Close <- LAOrehaD %>% group_by(Date) %>% slice_tail()
+Min <- LAOrehaD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LAOrehaD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+id <- 1:length(Close$close)
+
+NOrehaD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NOrehaD)[1] <- "Item"
+names(NOrehaD)[2] <- "Date"
+names(NOrehaD)[3] <- "Open"
+names(NOrehaD)[4] <- "Close"
+names(NOrehaD)[5] <- "Min"
+names(NOrehaD)[6] <- "Max"
+
+#Destruction
+Open <- LADestructionD %>% group_by(Date) %>% slice_head()
+Close <- LADestructionD %>% group_by(Date) %>% slice_tail()
+Min <- LADestructionD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LADestructionD %>% group_by(Date) %>% arrange(low) %>% slice_tail
+id2 <- 1:length(Close$close)
+
+NDestructionD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id2)
+names(NDestructionD)[1] <- "Item"
+names(NDestructionD)[2] <- "Date"
+names(NDestructionD)[3] <- "Open"
+names(NDestructionD)[4] <- "Close"
+names(NDestructionD)[5] <- "Min"
+names(NDestructionD)[6] <- "Max"
+
+#Guardian
+Open <- LAGuardianD %>% group_by(Date) %>% slice_head()
+Close <- LAGuardianD %>% group_by(Date) %>% slice_tail()
+Min <- LAGuardianD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LAGuardianD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+id2 <- 1:length(Close$close)
+
+NGuardianD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id2)
+names(NGuardianD)[1] <- "Item"
+names(NGuardianD)[2] <- "Date"
+names(NGuardianD)[3] <- "Open"
+names(NGuardianD)[4] <- "Close"
+names(NGuardianD)[5] <- "Min"
+names(NGuardianD)[6] <- "Max"
+
+#Solar Blessings
+Open <- LABlessingD %>% group_by(Date) %>% slice_head()
+Close <- LABlessingD %>% group_by(Date) %>% slice_tail()
+Min <- LABlessingD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LABlessingD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+
+NBlessingD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NBlessingD)[1] <- "Item"
+names(NBlessingD)[2] <- "Date"
+names(NBlessingD)[3] <- "Open"
+names(NBlessingD)[4] <- "Close"
+names(NBlessingD)[5] <- "Min"
+names(NBlessingD)[6] <- "Max"
+
+#Solar Grace
+Open <- LAGraceD %>% group_by(Date) %>% slice_head()
+Close <- LAGraceD %>% group_by(Date) %>% slice_tail()
+Min <- LAGraceD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LAGraceD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+
+NGraceD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NGraceD)[1] <- "Item"
+names(NGraceD)[2] <- "Date"
+names(NGraceD)[3] <- "Open"
+names(NGraceD)[4] <- "Close"
+names(NGraceD)[5] <- "Min"
+names(NGraceD)[6] <- "Max"
+
+#Solar Protection
+Open <- LAProtectionD %>% group_by(Date) %>% slice_head()
+Close <- LAProtectionD %>% group_by(Date) %>% slice_tail()
+Min <- LAProtectionD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LAProtectionD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+
+NProtectionD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NProtectionD)[1] <- "Item"
+names(NProtectionD)[2] <- "Date"
+names(NProtectionD)[3] <- "Open"
+names(NProtectionD)[4] <- "Close"
+names(NProtectionD)[5] <- "Min"
+names(NProtectionD)[6] <- "Max"
+
+#Large Shards 
+Open <- LALShardD %>% group_by(Date) %>% slice_head()
+Close <- LALShardD %>% group_by(Date) %>% slice_tail()
+Min <- LALShardD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LALShardD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+
+NLShardD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NLShardD)[1] <- "Item"
+names(NLShardD)[2] <- "Date"
+names(NLShardD)[3] <- "Open"
+names(NLShardD)[4] <- "Close"
+names(NLShardD)[5] <- "Min"
+names(NLShardD)[6] <- "Max"
+
+#Medium Shards 
+Open <- LAMShardD %>% group_by(Date) %>% slice_head()
+Close <- LAMShardD %>% group_by(Date) %>% slice_tail()
+Min <- LAMShardD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LAMShardD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+
+NMShardD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NMShardD)[1] <- "Item"
+names(NMShardD)[2] <- "Date"
+names(NMShardD)[3] <- "Open"
+names(NMShardD)[4] <- "Close"
+names(NMShardD)[5] <- "Min"
+names(NMShardD)[6] <- "Max"
+
+#Small Shards 
+Open <- LASShardD %>% group_by(Date) %>% slice_head()
+Close <- LASShardD %>% group_by(Date) %>% slice_tail()
+Min <- LASShardD %>% group_by(Date) %>% arrange(high) %>%slice_head
+Max <- LASShardD %>% group_by(Date) %>% arrange(low) %>%slice_tail
+
+NSShardD <- data.frame(Open$Item,Open$Date,Open$open,Close$close,Min$low,Max$high,id)
+names(NSShardD)[1] <- "Item"
+names(NSShardD)[2] <- "Date"
+names(NSShardD)[3] <- "Open"
+names(NSShardD)[4] <- "Close"
+names(NSShardD)[5] <- "Min"
+names(NSShardD)[6] <- "Max"
+
+#Giant merge of single day market descriptions
+NLAD <- rbind(NGHLD,NOrehaD,NBlessingD,NGraceD,NBlessingD,NProtectionD,NLShardD,NMShardD,NSShardD)
+NStonesD <- rbind(NDestructionD,NGuardianD)
+```
+
+#Regrouping for use in new GGPlot graphs
+These are for if I want to combine the data together for multiple items on a graph like the static graphs
+```{r}
+#LADGD T3 Destruction, T3 Guardians
+NDGD <- NStonesD %>% filter(NStonesD$Item %in% c("Destruction Stone","Guardian Stone"))
+
+#LARateupD is a data set for rate up materials 
+NRateupD <- NLAD %>% filter(NLAD$Item %in% c("Solar Blessing","Solar Grace","Solar Protection"))
+
+#LAShardsD is a data set for the shard packs
+NShardsD <- NLAD %>% filter(NLAD$Item %in% c("Honor Shard L","Honor Shard M","Honor Shard S"))
+```
+
+
+
+#First graphs
+With separating the data I can now make a candlestick chart of any single item. 
+```{r}
+GHLCgraph <- NGHLD %>% plot_ly(x = ~Date, type="candlestick",
+          open = ~Open, close = ~Close,
+          high = ~Max, low = ~Min) 
+
+GHLCgraph
+```
+
+
+#Plotly line graph setup.
+```{r}
+GHLLine <- plot_ly(NGHLD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines', name = "Great Honor Leapstone") %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date")))
+
+OrehaLine <- plot_ly(NOrehaD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines', name = "Basic Oreha Material") %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date")))
+
+StoneLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NDestructionD$Date, y = NDestructionD$Close, type = 'scatter', mode = 'line', name = "Destruction", line = list(color = 'red')) %>%
+  add_trace(x = NGuardianD$Date, y = NGuardianD$Close, type = 'scatter', mode = 'line', name = "Guardian", line = list(color = 'blue'))
+
+ShardsLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NLShardD$Date, y = NLShardD$Close, type = 'scatter', mode = 'line', name = "Large pouch", line = list(color = 'red')) %>%
+  add_trace(x = NMShardD$Date, y = NMShardD$Close, type = 'scatter', mode = 'line', name = "Medium pouch", line = list(color = 'blue')) %>%
+  add_trace(x = NSShardD$Date, y = NSShardD$Close, type = 'scatter', mode = 'line', name = "Small pouch", line = list(color = 'Green'))
+
+RateupLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NProtectionD$Date, y = NProtectionD$Close, type = 'scatter', mode = 'line', name = "Solar Protection", line = list(color = 'red')) %>%
+  add_trace(x = NBlessingD$Date, y = NBlessingD$Close, type = 'scatter', mode = 'line', name = "Solar Blessing", line = list(color = 'blue')) %>%
+  add_trace(x = NGraceD$Date, y = NGraceD$Close, type = 'scatter', mode = 'line', name = "Solar Grace", line = list(color = 'green')) 
+
+#Super Graph for fun
+SuperLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NProtectionD$Date, y = NProtectionD$Close, type = 'scatter', mode = 'line', name = "Solar Protection", line = list(color = 'rgb(255, 153, 51)')) %>%
+  add_trace(x = NBlessingD$Date, y = NBlessingD$Close, type = 'scatter', mode = 'line', name = "Solar Blessing", line = list(color = 'rgb(0, 204, 204)')) %>%
+  add_trace(x = NGraceD$Date, y = NGraceD$Close, type = 'scatter', mode = 'line', name = "Solar Grace", line = list(color = 'rgb(0, 204, 102)')) %>%
+  add_trace(x = NLShardD$Date, y = NLShardD$Close, type = 'scatter', mode = 'line', name = "Large pouch", line = list(color = 'rgb(255, 0, 0)')) %>%
+  add_trace(x = NMShardD$Date, y = NMShardD$Close, type = 'scatter', mode = 'line', name = "Medium pouch", line = list(color = 'rgb(0, 0, 255)')) %>%
+  add_trace(x = NSShardD$Date, y = NSShardD$Close, type = 'scatter', mode = 'line', name = "Small pouch", line = list(color = 'rgb(51, 102, 0)')) %>%
+  add_trace(x = NOrehaD$Date, y = NOrehaD$Close, type = 'scatter', mode = 'line', name = "Oreha Material", line = list(color = 'rgb(0, 0, 0)')) %>%
+  add_trace(x = NGHLD$Date, y = NGHLD$Close, type = 'scatter', mode = 'line', name = "Great Honor Leapstones", line = list(color = 'rgb(255, 0, 127)'))
+```
+
+#Plotly Line Graphs
+```{r}
+GHLLine
+
+OrehaLine
+
+StoneLine
+
+ShardsLine
+
+RateupLine
+
+#All items but stones included for fun
+SuperLine
+```
+#Buttons for Shading regions
+```{r}
+Region1 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[1,1], x1=Shade[1,2], opacity = .2, fillcolor = "gray")
+Region2 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[2,1], x1=Shade[2,2], opacity = .2, fillcolor = "gray")
+Region3 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[3,1], x1=Shade[3,2], opacity = .2, fillcolor = "gray")
+Region4 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[4,1], x1=Shade[4,2], opacity = .2, fillcolor = "gray")
+Region5 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[5,1], x1=Shade[5,2], opacity = .2, fillcolor = "gray")
+Region6 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[6,1], x1=Shade[6,2], opacity = .2, fillcolor = "gray")
+
+updatemenus <- list(
+  list(
+    active = -1,
+    type = 'buttons',
+    buttons = list(
+
+      list(
+        label = "None",
+        method = "relayout",
+        args = list(list(shapes = c()))),
+
+      list(
+        label = "Hyper Express 1",
+        method = "relayout",
+        args = list(list(shapes = list(Region1, c(),c(), c(),c(),c())))),
+      
+      list(
+        label = "May Update",
+        method = "relayout",
+        args = list(list(shapes = list(c(),Region2,c(), c(),c(),c())))),
+      
+      list(
+        label = "June/July Update",
+        method = "relayout",
+        args = list(list(shapes = list(c(),c(), Region3,c(),c(),c())))),
+      
+      list(
+        label = "Hyper Express 2",
+        method = "relayout",
+        args = list(list(shapes = list(c(),c(),c(),Region4,c(),c())))),
+      
+      list(
+        label = "August update",
+        method = "relayout",
+        args = list(list(shapes = list(c(),c(),c(), c(),c(),Region5,c())))),
+      
+      list(
+        label = "Clown update",
+        method = "relayout",
+        args = list(list(shapes = list(c(),c(),c(), c(),c(),c(),Region6)))),
+      
+      list(
+        label = "All",
+        method = "relayout",
+        args = list(list(shapes = list(c(),Region1,Region2, Region3,Region4,Region5,Region6))))
+      
+    )))
+
+
+
+GHLLine <- plot_ly(NGHLD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines', name = "Great Honor Leapstone") %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date")))
+
+
+GHLLine
+
+```
+
+```{r}
+SuperLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NProtectionD$Date, y = NProtectionD$Close, type = 'scatter', mode = 'line', name = "Solar Protection", line = list(color = 'rgb(255, 153, 51)')) %>%
+  add_trace(x = NBlessingD$Date, y = NBlessingD$Close, type = 'scatter', mode = 'line', name = "Solar Blessing", line = list(color = 'rgb(0, 204, 204)')) %>%
+  add_trace(x = NGraceD$Date, y = NGraceD$Close, type = 'scatter', mode = 'line', name = "Solar Grace", line = list(color = 'rgb(0, 204, 102)')) %>%
+  add_trace(x = NLShardD$Date, y = NLShardD$Close, type = 'scatter', mode = 'line', name = "Large pouch", line = list(color = 'rgb(255, 0, 0)')) %>%
+  add_trace(x = NMShardD$Date, y = NMShardD$Close, type = 'scatter', mode = 'line', name = "Medium pouch", line = list(color = 'rgb(0, 0, 255)')) %>%
+  add_trace(x = NSShardD$Date, y = NSShardD$Close, type = 'scatter', mode = 'line', name = "Small pouch", line = list(color = 'rgb(51, 102, 0)')) %>%
+  add_trace(x = NOrehaD$Date, y = NOrehaD$Close, type = 'scatter', mode = 'line', name = "Oreha Material", line = list(color = 'rgb(0, 0, 0)')) %>%
+  add_trace(x = NGHLD$Date, y = NGHLD$Close, type = 'scatter', mode = 'line', name = "Great Honor Leapstones", line = list(color = 'rgb(255, 0, 127)'))
+
+SuperLine
+```
+
