@@ -5,7 +5,7 @@ format: html
 editor: visual
 ---
 
-```{r}
+```{r echo=FALSE}
 library(lubridate)
 library(dplyr)
 library(ggplot2)
@@ -46,7 +46,7 @@ LostArkData$low[LostArkData$low ==0] <- NA
 LostArkData <- LostArkData[complete.cases(LostArkData), ]
 
 #checking new length, looks like we have removed 4 observations.
-length(LostArkData$id)
+
 
 #renaming first 2 columns
 names(LostArkData)[1] <- "Item"
@@ -272,8 +272,6 @@ NRateupD <- NLAD %>% filter(NLAD$Item %in% c("Solar Blessing","Solar Grace","Sol
 NShardsD <- NLAD %>% filter(NLAD$Item %in% c("Honor Shard L","Honor Shard M","Honor Shard S"))
 ```
 
-
-
 #First graph
 With separating the data I can now make a candlestick chart of any single item. 
 ```{r}
@@ -342,7 +340,6 @@ updatemenus <- list(
     )))
 
 ```
-
 
 #Plotly line graph setup.
 ```{r}
@@ -454,7 +451,7 @@ SuperLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", ya
   add_trace(x = NGHLD$Date, y = NGHLD$Close, type = 'scatter', mode = 'line', name = "Great Honor Leapstones", line = list(color = 'rgb(255, 0, 127)'))
 ```
 
-#Plotly Line Graphs
+#Plotly Line Graphs with shaded regions
 ```{r}
 GHLLine
 
