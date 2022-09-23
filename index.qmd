@@ -274,7 +274,7 @@ NShardsD <- NLAD %>% filter(NLAD$Item %in% c("Honor Shard L","Honor Shard M","Ho
 
 
 
-#First graphs
+#First graph
 With separating the data I can now make a candlestick chart of any single item. 
 ```{r}
 GHLCgraph <- NGHLD %>% plot_ly(x = ~Date, type="candlestick",
@@ -284,133 +284,7 @@ GHLCgraph <- NGHLD %>% plot_ly(x = ~Date, type="candlestick",
 GHLCgraph
 ```
 
-
-#Plotly line graph setup.
-```{r}
-GHLLine <- plot_ly(NGHLD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines', name = "Great Honor Leapstone") %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
-    rangeselector = list(
-      buttons = list(
-        list(
-          count = 7,
-          label = "1 Week",
-          step = "day",
-          stepmode = "backward"),
-        list(
-          count = 1,
-          label = "1 month",
-          step = "month",
-          stepmode = "backward"),list(step = "all"))), 
-    rangeslider = list(type = "date")))
-
-OrehaLine <- plot_ly(NOrehaD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines', name = "Basic Oreha Material") %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
-    rangeselector = list(
-      buttons = list(
-        list(
-          count = 7,
-          label = "1 Week",
-          step = "day",
-          stepmode = "backward"),
-        list(
-          count = 1,
-          label = "1 month",
-          step = "month",
-          stepmode = "backward"),list(step = "all"))), 
-    rangeslider = list(type = "date")))
-
-StoneLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
-    rangeselector = list(
-      buttons = list(
-        list(
-          count = 7,
-          label = "1 Week",
-          step = "day",
-          stepmode = "backward"),
-        list(
-          count = 1,
-          label = "1 month",
-          step = "month",
-          stepmode = "backward"),list(step = "all"))), 
-    rangeslider = list(type = "date"))) %>%
-  add_trace(x = NDestructionD$Date, y = NDestructionD$Close, type = 'scatter', mode = 'line', name = "Destruction", line = list(color = 'red')) %>%
-  add_trace(x = NGuardianD$Date, y = NGuardianD$Close, type = 'scatter', mode = 'line', name = "Guardian", line = list(color = 'blue'))
-
-ShardsLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
-    rangeselector = list(
-      buttons = list(
-        list(
-          count = 7,
-          label = "1 Week",
-          step = "day",
-          stepmode = "backward"),
-        list(
-          count = 1,
-          label = "1 month",
-          step = "month",
-          stepmode = "backward"),list(step = "all"))), 
-    rangeslider = list(type = "date"))) %>%
-  add_trace(x = NLShardD$Date, y = NLShardD$Close, type = 'scatter', mode = 'line', name = "Large pouch", line = list(color = 'red')) %>%
-  add_trace(x = NMShardD$Date, y = NMShardD$Close, type = 'scatter', mode = 'line', name = "Medium pouch", line = list(color = 'blue')) %>%
-  add_trace(x = NSShardD$Date, y = NSShardD$Close, type = 'scatter', mode = 'line', name = "Small pouch", line = list(color = 'Green'))
-
-RateupLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
-    rangeselector = list(
-      buttons = list(
-        list(
-          count = 7,
-          label = "1 Week",
-          step = "day",
-          stepmode = "backward"),
-        list(
-          count = 1,
-          label = "1 month",
-          step = "month",
-          stepmode = "backward"),list(step = "all"))), 
-    rangeslider = list(type = "date"))) %>%
-  add_trace(x = NProtectionD$Date, y = NProtectionD$Close, type = 'scatter', mode = 'line', name = "Solar Protection", line = list(color = 'red')) %>%
-  add_trace(x = NBlessingD$Date, y = NBlessingD$Close, type = 'scatter', mode = 'line', name = "Solar Blessing", line = list(color = 'blue')) %>%
-  add_trace(x = NGraceD$Date, y = NGraceD$Close, type = 'scatter', mode = 'line', name = "Solar Grace", line = list(color = 'green')) 
-
-#Super Graph for fun
-SuperLine <- plot_ly() %>% layout(hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
-    rangeselector = list(
-      buttons = list(
-        list(
-          count = 7,
-          label = "1 Week",
-          step = "day",
-          stepmode = "backward"),
-        list(
-          count = 1,
-          label = "1 month",
-          step = "month",
-          stepmode = "backward"),list(step = "all"))), 
-    rangeslider = list(type = "date"))) %>%
-  add_trace(x = NProtectionD$Date, y = NProtectionD$Close, type = 'scatter', mode = 'line', name = "Solar Protection", line = list(color = 'rgb(255, 153, 51)')) %>%
-  add_trace(x = NBlessingD$Date, y = NBlessingD$Close, type = 'scatter', mode = 'line', name = "Solar Blessing", line = list(color = 'rgb(0, 204, 204)')) %>%
-  add_trace(x = NGraceD$Date, y = NGraceD$Close, type = 'scatter', mode = 'line', name = "Solar Grace", line = list(color = 'rgb(0, 204, 102)')) %>%
-  add_trace(x = NLShardD$Date, y = NLShardD$Close, type = 'scatter', mode = 'line', name = "Large pouch", line = list(color = 'rgb(255, 0, 0)')) %>%
-  add_trace(x = NMShardD$Date, y = NMShardD$Close, type = 'scatter', mode = 'line', name = "Medium pouch", line = list(color = 'rgb(0, 0, 255)')) %>%
-  add_trace(x = NSShardD$Date, y = NSShardD$Close, type = 'scatter', mode = 'line', name = "Small pouch", line = list(color = 'rgb(51, 102, 0)')) %>%
-  add_trace(x = NOrehaD$Date, y = NOrehaD$Close, type = 'scatter', mode = 'line', name = "Oreha Material", line = list(color = 'rgb(0, 0, 0)')) %>%
-  add_trace(x = NGHLD$Date, y = NGHLD$Close, type = 'scatter', mode = 'line', name = "Great Honor Leapstones", line = list(color = 'rgb(255, 0, 127)'))
-```
-
-#Plotly Line Graphs
-```{r}
-GHLLine
-
-OrehaLine
-
-StoneLine
-
-ShardsLine
-
-RateupLine
-
-#All items but stones included for fun
-SuperLine
-```
-#Buttons for Shading regions
+#Buttons for Shading regions in the upcoming graphs.
 ```{r}
 Region1 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[1,1], x1=Shade[1,2], opacity = .2, fillcolor = "gray")
 Region2 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[2,1], x1=Shade[2,2], opacity = .2, fillcolor = "gray")
@@ -467,8 +341,11 @@ updatemenus <- list(
       
     )))
 
+```
 
 
+#Plotly line graph setup.
+```{r}
 GHLLine <- plot_ly(NGHLD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines', name = "Great Honor Leapstone") %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
       buttons = list(
@@ -484,12 +361,75 @@ GHLLine <- plot_ly(NGHLD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines'
           stepmode = "backward"),list(step = "all"))), 
     rangeslider = list(type = "date")))
 
+OrehaLine <- plot_ly(NOrehaD, x = ~Date, y= ~Close, type = 'scatter', mode = 'lines', name = "Basic Oreha Material") %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date")))
 
-GHLLine
+StoneLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NDestructionD$Date, y = NDestructionD$Close, type = 'scatter', mode = 'line', name = "Destruction", line = list(color = 'red')) %>%
+  add_trace(x = NGuardianD$Date, y = NGuardianD$Close, type = 'scatter', mode = 'line', name = "Guardian", line = list(color = 'blue'))
 
-```
+ShardsLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NLShardD$Date, y = NLShardD$Close, type = 'scatter', mode = 'line', name = "Large pouch", line = list(color = 'red')) %>%
+  add_trace(x = NMShardD$Date, y = NMShardD$Close, type = 'scatter', mode = 'line', name = "Medium pouch", line = list(color = 'blue')) %>%
+  add_trace(x = NSShardD$Date, y = NSShardD$Close, type = 'scatter', mode = 'line', name = "Small pouch", line = list(color = 'Green'))
 
-```{r}
+RateupLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+    rangeselector = list(
+      buttons = list(
+        list(
+          count = 7,
+          label = "1 Week",
+          step = "day",
+          stepmode = "backward"),
+        list(
+          count = 1,
+          label = "1 month",
+          step = "month",
+          stepmode = "backward"),list(step = "all"))), 
+    rangeslider = list(type = "date"))) %>%
+  add_trace(x = NProtectionD$Date, y = NProtectionD$Close, type = 'scatter', mode = 'line', name = "Solar Protection", line = list(color = 'red')) %>%
+  add_trace(x = NBlessingD$Date, y = NBlessingD$Close, type = 'scatter', mode = 'line', name = "Solar Blessing", line = list(color = 'blue')) %>%
+  add_trace(x = NGraceD$Date, y = NGraceD$Close, type = 'scatter', mode = 'line', name = "Solar Grace", line = list(color = 'green')) 
+
+#Super Graph for fun
 SuperLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
       buttons = list(
@@ -512,7 +452,22 @@ SuperLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", ya
   add_trace(x = NSShardD$Date, y = NSShardD$Close, type = 'scatter', mode = 'line', name = "Small pouch", line = list(color = 'rgb(51, 102, 0)')) %>%
   add_trace(x = NOrehaD$Date, y = NOrehaD$Close, type = 'scatter', mode = 'line', name = "Oreha Material", line = list(color = 'rgb(0, 0, 0)')) %>%
   add_trace(x = NGHLD$Date, y = NGHLD$Close, type = 'scatter', mode = 'line', name = "Great Honor Leapstones", line = list(color = 'rgb(255, 0, 127)'))
+```
 
+#Plotly Line Graphs
+```{r}
+GHLLine
+
+OrehaLine
+
+StoneLine
+
+ShardsLine
+
+RateupLine
+
+#All items but stones included for fun
 SuperLine
 ```
+
 
