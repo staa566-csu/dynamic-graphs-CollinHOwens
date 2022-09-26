@@ -736,6 +736,8 @@ Candles <- plot_ly(NLAD, x = ~Date) %>%
 
 ```{r warning=FALSE, error=FALSE,fig.width= 16}
 SuperLine
+```
 
+```{r warning=FALSE, error=FALSE,fig.width= 16}
 Candles
 ```
