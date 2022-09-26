@@ -5,7 +5,7 @@ format: html
 editor: visual
 ---
 
-```{r warning=FALSE,error=FALSE, echo=FALSE}
+```{r warning=FALSE,error=FALSE, echo=FALSE, message=FALSE}
 library(lubridate)
 library(dplyr)
 library(ggplot2)
@@ -23,7 +23,7 @@ library(tidyverse)
 
 # Setting Dataset up
 
-```{r}
+```{r message=FALSE}
 LAD <- VERB("GET", url = "https://www.lostarkmarket.online/api/export-item-history/North America West/basic-oreha-fusion-material-2,crystallized-destruction-stone-0,crystallized-guardian-stone-0,great-honor-leapstone-2,honor-shard-pouch-l-3,honor-shard-pouch-m-2,honor-shard-pouch-s-1,solar-blessing-2,solar-grace-1,solar-protection-3", encode = "json")
 
 resptxt <- content(LAD, as="text")
@@ -272,8 +272,6 @@ NRateupD <- NLAD %>% filter(NLAD$Item %in% c("Solar Blessing","Solar Grace","Sol
 NShardsD <- NLAD %>% filter(NLAD$Item %in% c("Honor Shard L","Honor Shard M","Honor Shard S"))
 ```
 
-
-
 # Buttons for Shading regions in the upcoming graphs.
 
 ```{r}
@@ -339,6 +337,7 @@ updatemenus <- list(
 dropdown <- list(
       list(
         y = 0.9,
+        pad = list('r'= 45, 't'= 0, 'b' = 0),
         buttons = list(
           list(method = "restyle",
                args = list("visible", list(TRUE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
@@ -495,6 +494,7 @@ SuperLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", ya
 ```
 
 # Candle stick graph setup
+
 ```{r}
 GHLCgraph <- NGHLD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
@@ -669,8 +669,6 @@ ProtectionCGraph <- NProtectionD %>% plot_ly(x = ~Date, type="candlestick",
     rangeslider = list(type = "date")))
 ```
 
-
-
 # Candlestick dropdown
 
 ```{r fig.width=16}
@@ -734,7 +732,7 @@ Candles <- plot_ly(NLAD, x = ~Date) %>%
 
 # Plotly Line Graphs with shaded regions and Candlestick graph with dropdown option
 
-```{r warning=FALSE, error=FALSE,fig.width= 16}
+```{r warning=FALSE, error=FALSE, fig.width= 16}
 SuperLine
 ```
 
