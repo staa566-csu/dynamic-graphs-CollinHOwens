@@ -5,7 +5,7 @@ format: html
 editor: visual
 ---
 
-```{r warning=FALSE,error=FALSE, echo=FALSE}
+```{r warning=FALSE,error=FALSE, echo=FALSE, message=FALSE}
 library(lubridate)
 library(dplyr)
 library(ggplot2)
@@ -23,7 +23,7 @@ library(tidyverse)
 
 # Setting Dataset up
 
-```{r}
+```{r message=FALSE}
 LAD <- VERB("GET", url = "https://www.lostarkmarket.online/api/export-item-history/North America West/basic-oreha-fusion-material-2,crystallized-destruction-stone-0,crystallized-guardian-stone-0,great-honor-leapstone-2,honor-shard-pouch-l-3,honor-shard-pouch-m-2,honor-shard-pouch-s-1,solar-blessing-2,solar-grace-1,solar-protection-3", encode = "json")
 
 resptxt <- content(LAD, as="text")
@@ -272,8 +272,6 @@ NRateupD <- NLAD %>% filter(NLAD$Item %in% c("Solar Blessing","Solar Grace","Sol
 NShardsD <- NLAD %>% filter(NLAD$Item %in% c("Honor Shard L","Honor Shard M","Honor Shard S"))
 ```
 
-
-
 # Buttons for Shading regions in the upcoming graphs.
 
 ```{r}
@@ -284,8 +282,10 @@ Region4 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shad
 Region5 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[5,1], x1=Shade[5,2], opacity = .2, fillcolor = "gray")
 Region6 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[6,1], x1=Shade[6,2], opacity = .2, fillcolor = "gray")
 
+#Button used for highlighting specific timeframes
 updatemenus <- list(
   list(
+    pad = list('r'= 45, 't'= 0, 'b' = 0),
     active = -1,
     type = 'buttons',
     buttons = list(
@@ -331,6 +331,54 @@ updatemenus <- list(
         args = list(list(shapes = list(c(),Region1,Region2, Region3,Region4,Region5,Region6))))
       
     )))
+
+
+#Buttons for a dropdown menu of different items
+dropdown <- list(
+      list(
+        y = 0.9,
+        pad = list('r'= 45, 't'= 0, 'b' = 0),
+        buttons = list(
+          list(method = "restyle",
+               args = list("visible", list(TRUE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+               label = "Great Honor Leapstones"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+               label = "Oreha"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+               label = "Destruction"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+               label = "Guardian"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+               label = "Small Shards"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE)),
+               label = "Medium Shards"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE)),
+               label = "Large Shards"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE)),
+               label = "Solar Blessing"),
+          
+          list(method = "restyle",
+               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE)),
+               label = "Solar Grace"),
+
+          list(method = "restyle",
+               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE)),
+               label = "Solar Protection")))
+)
 
 ```
 
@@ -421,7 +469,7 @@ RateupLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", y
   add_trace(x = NGraceD$Date, y = NGraceD$Close, type = 'scatter', mode = 'line', name = "Solar Grace", line = list(color = 'green')) 
 
 #Super Graph for fun
-SuperLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
+SuperLine <- plot_ly() %>% layout(autosize = F, width = 800, height = 500, updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
       buttons = list(
         list(
@@ -446,6 +494,7 @@ SuperLine <- plot_ly() %>% layout(updatemenus = updatemenus, hovermode = "x", ya
 ```
 
 # Candle stick graph setup
+
 ```{r}
 GHLCgraph <- NGHLD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
@@ -516,7 +565,7 @@ GuardianCgraph <- NGuardianD %>% plot_ly(x = ~Date, type="candlestick",
           stepmode = "backward"),list(step = "all"))), 
     rangeslider = list(type = "date")))
 
-SShardCgraph <- NSShardD %>% plot_ly(x = ~Date, type="candlestick",
+SShardCGraph <- NSShardD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
           high = ~Max, low = ~Min) %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
@@ -533,7 +582,7 @@ SShardCgraph <- NSShardD %>% plot_ly(x = ~Date, type="candlestick",
           stepmode = "backward"),list(step = "all"))), 
     rangeslider = list(type = "date")))
 
-MShardCgraph <- NMShardD %>% plot_ly(x = ~Date, type="candlestick",
+NMShardCGraph <- NMShardD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
           high = ~Max, low = ~Min) %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
@@ -551,7 +600,7 @@ MShardCgraph <- NMShardD %>% plot_ly(x = ~Date, type="candlestick",
     rangeslider = list(type = "date")))
 
 
-LShardCgraph <- NLShardD %>% plot_ly(x = ~Date, type="candlestick",
+NLShardCGraph <- NLShardD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
           high = ~Max, low = ~Min) %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
@@ -568,7 +617,7 @@ LShardCgraph <- NLShardD %>% plot_ly(x = ~Date, type="candlestick",
           stepmode = "backward"),list(step = "all"))), 
     rangeslider = list(type = "date")))
 
-BlessingCgraph <- NBlessingD %>% plot_ly(x = ~Date, type="candlestick",
+BlessingCGraph <- NBlessingD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
           high = ~Max, low = ~Min) %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
@@ -585,7 +634,7 @@ BlessingCgraph <- NBlessingD %>% plot_ly(x = ~Date, type="candlestick",
           stepmode = "backward"),list(step = "all"))), 
     rangeslider = list(type = "date")))
 
-GraceCgraph <- NGraceD %>% plot_ly(x = ~Date, type="candlestick",
+GraceCGraph <- NGraceD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
           high = ~Max, low = ~Min) %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
@@ -602,7 +651,7 @@ GraceCgraph <- NGraceD %>% plot_ly(x = ~Date, type="candlestick",
           stepmode = "backward"),list(step = "all"))), 
     rangeslider = list(type = "date")))
 
-ProtectionCgraph <- NProtectionD %>% plot_ly(x = ~Date, type="candlestick",
+ProtectionCGraph <- NProtectionD %>% plot_ly(x = ~Date, type="candlestick",
           open = ~Open, close = ~Close,
           high = ~Max, low = ~Min) %>% layout(updatemenus = updatemenus, hovermode = "x", yaxis = list(title = "Price in gold"),xaxis = list(
     rangeselector = list(
@@ -620,57 +669,9 @@ ProtectionCgraph <- NProtectionD %>% plot_ly(x = ~Date, type="candlestick",
     rangeslider = list(type = "date")))
 ```
 
-
 # Candlestick dropdown
 
 ```{r fig.width=16}
-dropdown = list(
-      list(
-        y = 0.9,
-        buttons = list(
-          list(method = "restyle",
-               args = list("visible", list(TRUE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
-               label = "Great Honor Leapstones"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
-               label = "Oreha"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
-               label = "Destruction"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
-               label = "Guardian"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE)),
-               label = "Small Shards"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE)),
-               label = "Medium Shards"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE)),
-               label = "Large Shards"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE)),
-               label = "Solar Blessing"),
-          
-          list(method = "restyle",
-               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE)),
-               label = "Solar Grace"),
-
-          list(method = "restyle",
-               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE)),
-               label = "Solar Protection")))
-  
-)
-  
-
 Candles <- plot_ly(NLAD, x = ~Date) %>% 
   
   add_trace(data =NGHLD ,x = ~Date, type="candlestick",
@@ -727,12 +728,14 @@ Candles <- plot_ly(NLAD, x = ~Date) %>%
           step = "month",
           stepmode = "backward"),list(step = "all"))), 
     rangeslider = list(type = "date")))
-  
+```
+
+# Plotly Line Graphs with shaded regions and Candlestick graph with dropdown option
+
+```{r warning=FALSE, error=FALSE, fig.width= 16}
+SuperLine
+```
+
+```{r warning=FALSE, error=FALSE,fig.width= 16}
 Candles
 ```
-
-```{r}
-
-
-```
-
