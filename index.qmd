@@ -5,7 +5,9 @@ format: html
 editor: visual
 ---
 
-```{r warning=FALSE,error=FALSE, echo=FALSE, message=FALSE}
+# Packages
+
+```{r warning=FALSE,error=FALSE, echo=FALSE}
 library(lubridate)
 library(dplyr)
 library(ggplot2)
@@ -368,7 +370,7 @@ dropdown <- list(
                label = "Large Shards"),
           
           list(method = "restyle",
-               args = list("visible", list(FALSE, TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE)),
+               args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE)),
                label = "Solar Blessing"),
           
           list(method = "restyle",
@@ -409,6 +411,7 @@ SuperLine <- plot_ly() %>% layout(autosize = F, width = 800, height = 500, updat
   add_trace(x = NOrehaD$Date, y = NOrehaD$Close, type = 'scatter', mode = 'line', name = "Oreha Material", line = list(color = 'rgb(0, 0, 0)')) %>%
   add_trace(x = NGHLD$Date, y = NGHLD$Close, type = 'scatter', mode = 'line', name = "Great Honor Leapstones", line = list(color = 'rgb(255, 0, 127)'))
 ```
+
 # Candlestick dropdown
 
 ```{r fig.width=16}
@@ -470,12 +473,64 @@ Candles <- plot_ly(NLAD, x = ~Date) %>%
     rangeslider = list(type = "date")))
 ```
 
+# Candlestick graph
+
+This graph is a "For fun" graph but can be used alongside the final graph. This candlestick graph was built from slicing data earlier to only provide the highest price, lowest price, closing price, and opening price for the day and condensing it in 1 row. I was not able to figure out how to combine this with the dates, but using the SuperLine graph and the dates pasted below, you can see the dates and hover over them with your mouse if you wished.
+
+```{r warning=FALSE, error=FALSE,fig.width= 16, fig.height=12}
+Candles
+```
+
 # Plotly Line Graphs with shaded regions and Candlestick graph with dropdown option
+
+This is the final graph.
 
 ```{r warning=FALSE, error=FALSE, fig.width= 16, fig.height=12}
 SuperLine
 ```
 
-```{r warning=FALSE, error=FALSE,fig.width= 16, fig.height=12}
-Candles
-```
+## Hyper express 1
+
+4/25 express mission announced for leveling characters. https://forums.playlostark.com/t/update-to-the-express-mission-event/349957 
+
+4/28 express mission applied https://forums.playlostark.com/t/lost-ark-weekly-update-428-12-am-pt-7-am-utc-9-am-cest/351443 This was when the data began to be tracked by volunteers. This was also the same time when Amazon announced an event called "Hyper express" which made it easier to level your character.
+
+## May Update
+
+5/6 May update announced https://www.playlostark.com/en-us/news/articles/may-2022-update-reveal 
+
+5/19 May update released https://www.playlostark.com/en-us/news/articles/may-2022-release-notes This was when they announced the first "legion raid" boss and a daily boss that doubles the Great Honor Leapstone supply for characters who can fight it.
+
+## June/July Update
+
+6/1 June/July update announced (new character announced too) https://www.playlostark.com/en-us/news/articles/june-and-july-2022-roadmap 
+
+6/1 Anti bot measures for dungeons https://forums.playlostark.com/t/lost-ark-weekly-update-june-2nd-12-am-pt-7-am-utc-9-am-cest/396600 
+
+6/30 June update applied https://www.playlostark.com/en-us/news/articles/wrath-of-the-covetous-legion-release-notes This is when they introduced the second "legion raid" boss while also introducing anti botting measures.
+
+6/22 June update delayed https://forums.playlostark.com/t/regarding-the-june-update/417483 E: 6/24 A bit more anti bot measures https://forums.playlostark.com/t/an-update-to-fraud-prevention-in-lost-ark/419449 They announced the June update will be delayed, adding another week for people to hit their goals.
+
+## Hyper express 2
+
+7/12 hyper express + new class confirmation date https://www.playlostark.com/en-gb/news/articles/arcanist-academy 
+
+7/19 Release of hyper express and arcana https://www.playlostark.com/en-us/news/articles/spells-in-spades-release-notes They announced the hyper express mission and a new character, leading you to level another character very fast and easily.
+
+## Powerpass disabled
+
+7/26 power passes disabled https://forums.playlostark.com/t/powerpasses-temporarily-disabled/439652 Due to botting, they disabled power passes to try and fix the market
+
+## August/September update
+
+7/29 August September roadmap announced https://www.playlostark.com/en-us/news/articles/august-september-2022-roadmap They announce the August and September roadmap, unfortunately August's update had nothing really important in the game.
+
+8/15 August update applied, pet ranch and powerpass enabled. https://forums.playlostark.com/t/update-to-disabled-powerpasses/449952 The August update was applied, but they also re enabled the powerpasses so people can now level a character to a high level easily again.
+
+## 24 hours downtime
+
+9/7 almost 24 hours of downtime https://twitter.com/playlostark/status/1567522574292189185 The game went down for 24 hours due to some bug. Prices for Red stones became strange for about 2 days.
+
+##September/Clown Update
+
+9/20 New class and boss confirmation date https://twitter.com/playlostark/status/1572256100841590784 They announce the new classes release date, which should also bring a new boss.
