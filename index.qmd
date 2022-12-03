@@ -81,6 +81,12 @@ LostArkData <- LostArkData[!(LostArkData$close == 116.00 & LostArkData$low == 11
 LostArkData <- LostArkData[!(LostArkData$open == 116.00 & LostArkData$low == 11.00),]
 LostArkData <- LostArkData[!(LostArkData$close == 115.00 & LostArkData$low == 11.00),]
 
+#look at this later
+LostArkData <- LostArkData %>% filter(high < 10000)
+
+
+
+
 #LAGHLD is a data set for Great Honor Leapstones
 LAGHLD <- LostArkData %>% filter(LostArkData$Item %in% c("Great Honor Leapstones"))
 
@@ -103,7 +109,7 @@ LASShardD <- LostArkData %>% filter(LostArkData$Item %in% c("Honor Shard S"))
 
 
 #Shaded regions
-Shade <- data.frame(start = as.Date(c('2022-04-25','2022-05-06','2022-06-01','2022-07-12','2022-07-29','2022-09-20')), end = as.Date(c('2022-04-28','2022-05-19','2022-06-30','2022-07-19','2022-08-15','2022-09-28')))
+Shade <- data.frame(start = as.Date(c('2022-04-25','2022-05-06','2022-06-01','2022-07-12','2022-07-29','2022-09-20','2022-10-13')), end = as.Date(c('2022-04-28','2022-05-19','2022-06-30','2022-07-19','2022-08-15','2022-09-28','2022-11-16')))
 
 Shade1 <- data.frame(start = as.Date(c('2022-07-12','2022-07-29','2022-09-20')), end = as.Date(c('2022-07-19','2022-08-15','2022-09-28')))
 ```
@@ -283,6 +289,8 @@ Region3 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shad
 Region4 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[4,1], x1=Shade[4,2], opacity = .2, fillcolor = "gray")
 Region5 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[5,1], x1=Shade[5,2], opacity = .2, fillcolor = "gray")
 Region6 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[6,1], x1=Shade[6,2], opacity = .2, fillcolor = "gray")
+Region7 <- list(type = 'rect', xref = 'x', yref = 'y', y0 = 0, y1 = 800, x0=Shade[7,1], x1=Shade[7,2], opacity = .2, fillcolor = "gray")
+
 
 #Button used for highlighting specific timeframes
 updatemenus <- list(
@@ -300,37 +308,42 @@ updatemenus <- list(
       list(
         label = "Hyper Express 1",
         method = "relayout",
-        args = list(list(shapes = list(Region1, c(),c(), c(),c(),c())))),
+        args = list(list(shapes = list(Region1, c(),c(), c(),c(),c(),c())))),
       
       list(
         label = "May Update",
         method = "relayout",
-        args = list(list(shapes = list(c(),Region2,c(), c(),c(),c())))),
+        args = list(list(shapes = list(c(),Region2,c(), c(),c(),c(),c())))),
       
       list(
         label = "June/July Update",
         method = "relayout",
-        args = list(list(shapes = list(c(),c(), Region3,c(),c(),c())))),
+        args = list(list(shapes = list(c(),c(), Region3,c(),c(),c(),c())))),
       
       list(
         label = "Hyper Express 2",
         method = "relayout",
-        args = list(list(shapes = list(c(),c(),c(),Region4,c(),c())))),
+        args = list(list(shapes = list(c(),c(),c(),Region4,c(),c(),c())))),
       
       list(
         label = "August update",
         method = "relayout",
-        args = list(list(shapes = list(c(),c(),c(), c(),c(),Region5,c())))),
+        args = list(list(shapes = list(c(),c(),c(), c(),c(),Region5,c(),c())))),
       
       list(
         label = "Clown update",
         method = "relayout",
-        args = list(list(shapes = list(c(),c(),c(), c(),c(),c(),Region6)))),
+        args = list(list(shapes = list(c(),c(),c(), c(),c(),c(),Region6,c())))),
+      
+      list(
+        label = "Ark pass 2",
+        method = "relayout",
+        args = list(list(shapes = list(c(),c(),c(), c(),c(),c(),c(),Region7)))),
       
       list(
         label = "All",
         method = "relayout",
-        args = list(list(shapes = list(c(),Region1,Region2, Region3,Region4,Region5,Region6))))
+        args = list(list(shapes = list(c(),Region1,Region2, Region3,Region4,Region5,Region6,Region7))))
       
     )))
 
@@ -491,29 +504,31 @@ SuperLine
 
 ## Hyper express 1
 
-4/25 express mission announced for leveling characters. https://forums.playlostark.com/t/update-to-the-express-mission-event/349957 
+4/25 express mission announced for leveling characters. https://forums.playlostark.com/t/update-to-the-express-mission-event/349957
 
 4/28 express mission applied https://forums.playlostark.com/t/lost-ark-weekly-update-428-12-am-pt-7-am-utc-9-am-cest/351443 This was when the data began to be tracked by volunteers. This was also the same time when Amazon announced an event called "Hyper express" which made it easier to level your character.
 
 ## May Update
 
-5/6 May update announced https://www.playlostark.com/en-us/news/articles/may-2022-update-reveal 
+5/6 May update announced https://www.playlostark.com/en-us/news/articles/may-2022-update-reveal
 
 5/19 May update released https://www.playlostark.com/en-us/news/articles/may-2022-release-notes This was when they announced the first "legion raid" boss and a daily boss that doubles the Great Honor Leapstone supply for characters who can fight it.
 
 ## June/July Update
 
-6/1 June/July update announced (new character announced too) https://www.playlostark.com/en-us/news/articles/june-and-july-2022-roadmap 
+6/1 June/July update announced (new character announced too) https://www.playlostark.com/en-us/news/articles/june-and-july-2022-roadmap
 
-6/1 Anti bot measures for dungeons https://forums.playlostark.com/t/lost-ark-weekly-update-june-2nd-12-am-pt-7-am-utc-9-am-cest/396600 
+6/1 Anti bot measures for dungeons https://forums.playlostark.com/t/lost-ark-weekly-update-june-2nd-12-am-pt-7-am-utc-9-am-cest/396600
 
 6/30 June update applied https://www.playlostark.com/en-us/news/articles/wrath-of-the-covetous-legion-release-notes This is when they introduced the second "legion raid" boss while also introducing anti botting measures.
 
-6/22 June update delayed https://forums.playlostark.com/t/regarding-the-june-update/417483 E: 6/24 A bit more anti bot measures https://forums.playlostark.com/t/an-update-to-fraud-prevention-in-lost-ark/419449 They announced the June update will be delayed, adding another week for people to hit their goals.
+6/22 June update delayed https://forums.playlostark.com/t/regarding-the-june-update/417483 
+
+6/24 A bit more anti bot measures https://forums.playlostark.com/t/an-update-to-fraud-prevention-in-lost-ark/419449 They announced the June update will be delayed, adding another week for people to hit their goals.
 
 ## Hyper express 2
 
-7/12 hyper express + new class confirmation date https://www.playlostark.com/en-gb/news/articles/arcanist-academy 
+7/12 hyper express + new class confirmation date https://www.playlostark.com/en-gb/news/articles/arcanist-academy
 
 7/19 Release of hyper express and arcana https://www.playlostark.com/en-us/news/articles/spells-in-spades-release-notes They announced the hyper express mission and a new character, leading you to level another character very fast and easily.
 
@@ -534,3 +549,15 @@ SuperLine
 ##September/Clown Update
 
 9/20 New class and boss confirmation date https://twitter.com/playlostark/status/1572256100841590784 They announce the new classes release date, which should also bring a new boss.
+
+##Scouter release
+9/27 Scouter and clown release. https://www.playlostark.com/en-us/news/articles/rage-with-the-machinist-release-notes
+
+##November/December update announcement
+10/3 Brelshaza announced 
+
+##Ark pass 2
+10/13 Another event to boost the ilevel of characters.
+
+##Reaper
+11/16 Reaper released with a gold sink to try and deflate the economy. Hyper express for a fast track to 1445 also released.
